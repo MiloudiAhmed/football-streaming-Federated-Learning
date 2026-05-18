@@ -1,0 +1,19 @@
+# backend/requirements.txt
+# Python dependencies for producer + API
+
+# Kafka client
+kafka-python==2.0.2
+
+# FastAPI + ASGI server
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+websockets==12.0
+
+# Data processing (for enricher)
+pandas==2.2.0
+
+# MongoDB (optional)
+pymongo==4.6.1
+
+# Utilities
+python-dotenv==1.0.0

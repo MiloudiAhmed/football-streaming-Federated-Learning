@@ -1,0 +1,112 @@
+version: "3.9"
+
+# ============================================================
+# Football Streaming Platform - Docker Compose
+# Starts: Zookeeper, Kafka, Kafka-UI, MongoDB
+# All free, all local, no paid services
+# ============================================================
+
+services:
+
+  # ---- Zookeeper (Kafka needs it for coordination) ----
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - football-net
+
+  # ---- Kafka Broker ----
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"       # accessible from host (Python scripts)
+      - "29092:29092"     # internal Docker network
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      # Two listeners: one for inside Docker, one for outside
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    networks:
+      - football-net
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ---- Kafka UI (optional but very useful for debugging) ----
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    depends_on:
+      - kafka
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+    networks:
+      - football-net
+
+  # ---- MongoDB (optional - for persisting match history) ----
+  mongodb:
+    image: mongo:7.0
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: football_streaming
+    networks:
+      - football-net
+
+  # ---- Topic initializer (creates topics on startup) ----
+  kafka-init:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka-init
+    depends_on:
+      kafka:
+        condition: service_healthy
+    entrypoint: ["/bin/bash", "-c"]
+    command: |
+      "
+      # Wait a moment then create all required topics
+      sleep 5
+
+      # match_events: raw game events (goals, cards, substitutions)
+      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists \
+        --topic match_events --partitions 4 --replication-factor 1
+
+      # match_status: lifecycle events (START, LIVE_UPDATE, END)
+      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists \
+        --topic match_status --partitions 2 --replication-factor 1
+
+      # model_updates: placeholder for Federated Learning (future)
+      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists \
+        --topic model_updates --partitions 1 --replication-factor 1
+
+      echo '✅ All topics created!'
+      kafka-topics --bootstrap-server kafka:29092 --list
+      "
+    networks:
+      - football-net
+
+networks:
+  football-net:
+    driver: bridge
+
+volumes:
+  mongo-data:

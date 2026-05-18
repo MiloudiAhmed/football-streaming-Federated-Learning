@@ -1,0 +1,81 @@
+/* ── FL Status Panel (add to App.css) ───────────────────────────────────── */
+
+.fl-status-panel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  padding: 4px 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+}
+
+.fl-icon  { font-size: 14px; }
+.fl-label { color: var(--text-muted); }
+
+.fl-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.fl-dot--active {
+  background: var(--blue);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+.fl-dot--idle { background: var(--text-muted); }
+
+.fl-state {
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+/* ── Goal Probability Badge ─────────────────────────────────────────────── */
+.fl-prob-badge {
+  margin-top: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card-hover);
+}
+
+.fl-prob-badge--high   { border-color: rgba(241,196,15,0.4); }
+.fl-prob-badge--medium { border-color: rgba(88,166,255,0.3); }
+.fl-prob-badge--low    { border-color: var(--border-subtle); }
+
+.fl-prob-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.fl-prob-icon  { font-size: 13px; }
+.fl-prob-label { font-size: 11px; color: var(--text-muted); flex: 1; }
+
+.fl-prob-value {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.fl-prob-badge--high   .fl-prob-value { color: var(--goal-gold); }
+.fl-prob-badge--medium .fl-prob-value { color: var(--blue); }
+.fl-prob-badge--low    .fl-prob-value { color: var(--text-muted); }
+
+.fl-prob-bar {
+  width: 100%;
+  height: 3px;
+  background: var(--border-subtle);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.fl-prob-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 1s ease;
+  background: linear-gradient(90deg, var(--blue), var(--goal-gold));
+}

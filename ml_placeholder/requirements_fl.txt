@@ -1,0 +1,13 @@
+# requirements_fl.txt
+# Additional dependencies for Federated Learning module
+# Install with: pip install -r requirements_fl.txt
+
+# Deep learning framework (CPU version — no GPU needed)
+torch==2.2.0
+torchvision==0.17.0
+
+# Numerical computing
+numpy==1.26.4
+
+# Already in requirements.txt but listed here for completeness
+kafka-python==2.0.2
